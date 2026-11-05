@@ -1,0 +1,58 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>GatewayProxy.PlacaIA</AssemblyName>
+    <RootNamespace>GatewayProxy.PlacaIA</RootNamespace>
+    <!-- A pasta de testes fica dentro do repositorio da lib: nao pode entrar na compilacao dela. -->
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <!--
+  Verificacao/leitura de placa por IA de visao (anthropic, gemini, openai-compativel/OpenRouter, ollama).
+  Consumidores: GatewayOne (verifica alertas de furto/roubo) e ParkREST.
+
+  As Configurations continuam listadas porque o nome da configuracao e propagado via ProjectReference
+  pelos apps que consomem esta lib (GatewayOne usa Release-CPU no deploy). A lib nao usa ONNX Runtime.
+  -->
+  <PropertyGroup>
+    <Configurations>Debug;Release;Debug-CPU;Release-CPU;Debug-CUDA;Release-CUDA</Configurations>
+  </PropertyGroup>
+
+  <!--
+  O SDK aplica os defaults de compilacao apenas para os nomes exatos 'Debug' e 'Release'.
+  Sem os grupos abaixo, Release-CUDA sairia sem otimizacao, Debug-CUDA sairia sem
+  simbolos e ambos definiriam DEBUG_CUDA em vez de DEBUG.
+  -->
+  <PropertyGroup Condition="'$(Configuration)' != 'Debug' And $(Configuration.StartsWith('Debug'))">
+    <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' != 'Release' And $(Configuration.StartsWith('Release'))">
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.9" />
+    <!--
+    OpenCvSharp so recorta o retangulo verde (PlacaIARecorte). Os dois runtimes nativos vem junto:
+    quem referencia so esta lib nao pode ficar sem a nativa (mesmo padrao do GatewayProxy.PlateServices).
+    -->
+    <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260627" />
+    <PackageReference Include="OpenCvSharp4.official.runtime.linux-x64" Version="4.13.0.20260627" />
+    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260627" />
+  </ItemGroup>
+
+</Project>
