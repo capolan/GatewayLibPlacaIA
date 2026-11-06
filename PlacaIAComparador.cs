@@ -117,6 +117,22 @@ namespace GatewayProxy.PlacaIA
                         : $" | veiculo divergente do {referencia.fonte}: {detalhe}";
                     if (cfg.suprimirSeVeiculoDivergir) { r.suprimirAlerta = true; }
                 }
+
+                r.divergenciaCor = CorDiverge(leitura.veiculo?.cor, referencia.descCor);
+                if (r.divergenciaCor)
+                {
+                    r.detalheVeiculo += $" | cor IA: {leitura.veiculo?.cor} | cor {referencia.fonte}: {referencia.descCor}";
+                }
+
+                // Regra intermediaria: a IA nao confirmou a placa E o veiculo (tipo/marca) E a cor divergem do cadastro.
+                // Quase certo que o LPR leu a placa errada e o cadastro e de outro carro.
+                if (cfg.suprimirSeNaoConfirmouEVeiculoDivergir && naoConfirmou && !r.suprimirAlerta
+                    && r.divergenciaVeiculo && r.divergenciaCor)
+                {
+                    r.suprimirAlerta = true;
+                    r.motivo = (r.motivo ?? "").Replace(" (alerta mantido, revisar)", "")
+                        + $" | alerta suprimido: placa nao confirmada pela IA e veiculo e cor divergem do {referencia.fonte}";
+                }
             }
             return r;
         }
@@ -166,6 +182,43 @@ namespace GatewayProxy.PlacaIA
                 return true;
             }
             return false;
+        }
+
+        // Cor da IA (branca, preta, prata...) contra a do cadastro (BRANCA, PRETA, PRATA...). So diz "diverge" quando
+        // a diferenca e grosseira, porque a IA confunde tons vizinhos (prata/branca, prata/cinza, cinza/preta,
+        // azul-escuro/preta). Cor desconhecida ou fora da lista nunca diverge.
+        //  - neutras (escala claro -> escuro: branca 0, bege 0,5, dourada 1, prata 1, cinza 2, preta 3):
+        //    diverge se a distancia for >= 2 (branca-cinza, branca-preta, prata-preta, bege-preta);
+        //  - cromaticas: diverge se forem familias diferentes (vermelho/vinho/rosa/laranja, amarelo/marrom, azul, verde);
+        //  - cromatica contra neutra: so diverge se a neutra for clara (branca, bege, dourada, prata).
+        public static bool CorDiverge(string? corIA, string? corReferencia)
+        {
+            var a = ClasseCor(corIA);
+            var b = ClasseCor(corReferencia);
+            if (a == null || b == null) { return false; }
+            if (a.Value.neutra && b.Value.neutra) { return Math.Abs(a.Value.escala - b.Value.escala) >= 2.0; }
+            if (!a.Value.neutra && !b.Value.neutra) { return a.Value.familia != b.Value.familia; }
+            var neutra = a.Value.neutra ? a.Value : b.Value;
+            return neutra.escala <= 1.0;
+        }
+
+        private static (bool neutra, double escala, string familia)? ClasseCor(string? cor)
+        {
+            var t = Normaliza(cor);
+            if (t.Length == 0) { return null; }
+            // Prefixos cobrem o feminino/masculino/aumentativo: BRANC(A/O), PRET(A/O), PRATEAD(A/O), CINZ(A/ENTA)...
+            if (t.StartsWith("BRANC")) { return (true, 0.0, ""); }
+            if (t.StartsWith("BEGE")) { return (true, 0.5, ""); }
+            if (t.StartsWith("DOURAD")) { return (true, 1.0, ""); }
+            if (t.StartsWith("PRAT")) { return (true, 1.0, ""); }
+            if (t.StartsWith("CINZ")) { return (true, 2.0, ""); }
+            if (t.StartsWith("PRET")) { return (true, 3.0, ""); }
+            if (t.StartsWith("VERMELH") || t.StartsWith("VINHO") || t.StartsWith("BORDO") || t.StartsWith("ROSA")
+                || t.StartsWith("LARANJ")) { return (false, 0, "vermelho"); }
+            if (t.StartsWith("AMAREL") || t.StartsWith("MARROM")) { return (false, 0, "amarelo"); }
+            if (t.StartsWith("AZUL")) { return (false, 0, "azul"); }
+            if (t.StartsWith("VERDE")) { return (false, 0, "verde"); }
+            return null; // "outra", "fantasia", desconhecida
         }
 
         private static Categoria CategoriaIA(string? tipo)

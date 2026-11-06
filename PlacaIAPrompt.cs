@@ -18,10 +18,12 @@ namespace GatewayProxy.PlacaIA
             "4. \"confianca\" is your confidence from 0.0 to 1.0 that the whole plate is exactly right.\n" +
             "5. Also describe the vehicle that carries that plate: \"tipo\" is one of carro, suv, picape, van, " +
             "caminhao, onibus, moto, outro; \"marca\" and \"modelo\" are your best identification " +
+            "(empty string if you cannot tell); \"cor\" is the main body color, one of branca, preta, prata, " +
+            "cinza, vermelha, azul, verde, amarela, marrom, bege, laranja, dourada, rosa, vinho, outra " +
             "(empty string if you cannot tell).\n" +
             "Answer with ONLY one JSON object, no markdown, no commentary:\n" +
             "{\"placa\":\"ABC1D23\",\"legivel\":true,\"confianca\":0.95," +
-            "\"veiculo\":{\"tipo\":\"carro\",\"marca\":\"\",\"modelo\":\"\"}}";
+            "\"veiculo\":{\"tipo\":\"carro\",\"marca\":\"\",\"modelo\":\"\",\"cor\":\"\"}}";
 
         // Sem retangulo: le a placa do veiculo principal da cena (ParkREST e outros).
         public const string TextoPlacaPrincipal =
@@ -35,10 +37,12 @@ namespace GatewayProxy.PlacaIA
             "4. \"confianca\" is your confidence from 0.0 to 1.0 that the whole plate is exactly right.\n" +
             "5. Also describe the vehicle that carries that plate: \"tipo\" is one of carro, suv, picape, van, " +
             "caminhao, onibus, moto, outro; \"marca\" and \"modelo\" are your best identification " +
+            "(empty string if you cannot tell); \"cor\" is the main body color, one of branca, preta, prata, " +
+            "cinza, vermelha, azul, verde, amarela, marrom, bege, laranja, dourada, rosa, vinho, outra " +
             "(empty string if you cannot tell).\n" +
             "Answer with ONLY one JSON object, no markdown, no commentary:\n" +
             "{\"placa\":\"ABC1D23\",\"legivel\":true,\"confianca\":0.95," +
-            "\"veiculo\":{\"tipo\":\"carro\",\"marca\":\"\",\"modelo\":\"\"}}";
+            "\"veiculo\":{\"tipo\":\"carro\",\"marca\":\"\",\"modelo\":\"\",\"cor\":\"\"}}";
 
         // Com recorte, o modelo recebe duas imagens: a cena (para o veiculo) e o recorte ampliado (para a placa).
         // O recorte so existe no modo RetanguloVerde.
@@ -67,9 +71,10 @@ namespace GatewayProxy.PlacaIA
                     {
                         ["tipo"] = new JsonObject { ["type"] = "string" },
                         ["marca"] = new JsonObject { ["type"] = "string" },
-                        ["modelo"] = new JsonObject { ["type"] = "string" }
+                        ["modelo"] = new JsonObject { ["type"] = "string" },
+                        ["cor"] = new JsonObject { ["type"] = "string" }
                     },
-                    ["required"] = new JsonArray("tipo", "marca", "modelo")
+                    ["required"] = new JsonArray("tipo", "marca", "modelo", "cor")
                 }
             },
             ["required"] = new JsonArray("placa", "legivel", "confianca", "veiculo")

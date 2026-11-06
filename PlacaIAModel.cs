@@ -40,6 +40,13 @@ namespace GatewayProxy.PlacaIA
         public bool suprimirSeIlegivel { get; set; } = false;
         // Marca/tipo do veiculo divergente do DETRAN-ES: so informa (false) ou tambem suprime (true).
         public bool suprimirSeVeiculoDivergir { get; set; } = false;
+        // Regra intermediaria (padrao false): suprime quando a IA NAO confirmou a placa (ilegivel ou confianca
+        // baixa) E o veiculo diverge do cadastro em tipo/marca E tambem na cor. Cobre o LPR que leu uma placa
+        // errada e achou um furto/roubo de outro carro (caso OVI2A40: cadastro Cruze preto, na foto um sedan
+        // prata), sem derrubar o alerta quando a IA leu a placa certa (possivel clone) nem quando ha so uma
+        // divergencia isolada de marca (a IA erra marca com mais frequencia que a cor grosseira). Cor
+        // desconhecida de qualquer lado nunca conta como divergencia.
+        public bool suprimirSeNaoConfirmouEVeiculoDivergir { get; set; } = false;
         // true = manda so o recorte da placa (cam.plate) em vez da imagem inteira (menos dados pessoais).
         public bool somenteRecorte { get; set; } = false;
         // Detecta o retangulo verde na imagem e manda tambem um recorte ampliado dele (2a imagem) para a IA
@@ -68,6 +75,8 @@ namespace GatewayProxy.PlacaIA
         public string? descTipo { get; set; }
         // Ex.: "VW/GOL 1.0".
         public string? descMarca { get; set; }
+        // Ex.: "PRETA", "PRATA", "BRANCA". Opcional: sem cor a regra de supressao por cor nao dispara.
+        public string? descCor { get; set; }
         // Nome da fonte, usado nos textos de motivo/detalhe.
         public string fonte { get; set; } = "DETRAN-ES";
     }
@@ -78,6 +87,9 @@ namespace GatewayProxy.PlacaIA
         public string? tipo { get; set; }
         public string? marca { get; set; }
         public string? modelo { get; set; }
+        // Cor principal da carroceria: branca, preta, prata, cinza, vermelha, azul, verde, amarela, marrom,
+        // bege, laranja, dourada, rosa, vinho, outra. Vazio = a IA nao soube dizer.
+        public string? cor { get; set; }
     }
 
     // Leitura crua devolvida pelo provedor (ja parseada).
@@ -104,6 +116,8 @@ namespace GatewayProxy.PlacaIA
         public string status { get; set; } = "naoVerificada";
         public bool suprimirAlerta { get; set; }
         public bool divergenciaVeiculo { get; set; }
+        // A cor descrita pela IA e claramente outra que a do cadastro (so quando as duas sao conhecidas).
+        public bool divergenciaCor { get; set; }
         public string? detalheVeiculo { get; set; }
         public string? motivo { get; set; }
         public string? provedor { get; set; }

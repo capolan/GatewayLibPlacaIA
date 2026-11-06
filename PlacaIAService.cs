@@ -58,10 +58,11 @@ namespace GatewayProxy.PlacaIA
                     r.usouFallback = i > 0;
                     r.ms = sw.ElapsedMilliseconds;
                     logger.LogInformation("[{ProcessId}] PlacaIA {Provedor}/{Modelo}: lida={Lida} ia={IA} conf={Conf:P0} status={Status} " +
-                        "veiculoIA=[{Tipo}|{Marca}|{ModeloVeic}] detran=[{DetranTipo}|{DetranMarca}] veiculoDiverge={Vd} recorte={Recorte} tokens={TokIn}/{TokOut} ({Ms}ms)",
+                        "veiculoIA=[{Tipo}|{Marca}|{ModeloVeic}|{CorIA}] detran=[{DetranTipo}|{DetranMarca}|{DetranCor}] veiculoDiverge={Vd} corDiverge={Cd} suprimir={Sup} recorte={Recorte} tokens={TokIn}/{TokOut} ({Ms}ms)",
                         processId, r.provedor, r.modelo, placaLida, r.placaIA, r.confianca, r.status,
-                        r.veiculo?.tipo, r.veiculo?.marca, r.veiculo?.modelo, referencia?.descTipo, referencia?.descMarca,
-                        r.divergenciaVeiculo, r.recorteUsado, r.tokensEntrada, r.tokensSaida, r.ms);
+                        r.veiculo?.tipo, r.veiculo?.marca, r.veiculo?.modelo, r.veiculo?.cor,
+                        referencia?.descTipo, referencia?.descMarca, referencia?.descCor,
+                        r.divergenciaVeiculo, r.divergenciaCor, r.suprimirAlerta, r.recorteUsado, r.tokensEntrada, r.tokensSaida, r.ms);
                     return r;
                 }
                 catch (Exception ex)
