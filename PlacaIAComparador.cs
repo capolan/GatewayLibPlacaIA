@@ -96,8 +96,11 @@ namespace GatewayProxy.PlacaIA
 
             // So a leitura de OUTRA placa, com confianca alta, suprime. Ilegivel ou confianca baixa nao e
             // evidencia contra o alerta: ele segue, marcado para revisao (a menos que suprimirSeIlegivel).
-            bool naoConfirmou = r.status == Ilegivel || r.status == BaixaConfianca;
-            r.suprimirAlerta = r.status == Divergente || (naoConfirmou && cfg.suprimirSeIlegivel);
+            // Com suprimirSeDivergente=false a leitura de outra placa tambem so anota: segue o alerta e conta como "nao confirmou".
+            bool divergenteSoAnota = r.status == Divergente && !cfg.suprimirSeDivergente;
+            bool naoConfirmou = r.status == Ilegivel || r.status == BaixaConfianca || divergenteSoAnota;
+            r.suprimirAlerta = (r.status == Divergente && cfg.suprimirSeDivergente)
+                               || ((r.status == Ilegivel || r.status == BaixaConfianca) && cfg.suprimirSeIlegivel);
             if (naoConfirmou && !r.suprimirAlerta)
             {
                 r.motivo += " (alerta mantido, revisar)";

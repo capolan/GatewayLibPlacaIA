@@ -38,6 +38,12 @@ namespace GatewayProxy.PlacaIA
         // hesita, entao suprimir por isso derrubaria alertas reais (caso FindFaces 18885325).
         // So uma leitura de OUTRA placa com confianca alta suprime sempre.
         public bool suprimirSeIlegivel { get; set; } = false;
+        // Leitura de OUTRA placa feita pela IA com confianca >= minConfianca (status divergente): true (padrao) suprime o
+        // alerta; false so anota ("alerta mantido, revisar") e conta como "nao confirmou" para a regra intermediaria abaixo.
+        // Em 2026-11-08, em 44 divergencias OCR x IA conferidas a olho, a IA (Haiku 5.5) acertou 14 e o OCR 21, e a confianca
+        // que ela informa nao separa as leituras certas das erradas: a regra de suprimir pela placa derrubaria ~22% das
+        // leituras corretas. Em producao fica false, com a regra intermediaria ligada.
+        public bool suprimirSeDivergente { get; set; } = true;
         // Marca/tipo do veiculo divergente do DETRAN-ES: so informa (false) ou tambem suprime (true).
         public bool suprimirSeVeiculoDivergir { get; set; } = false;
         // Regra intermediaria (padrao false): suprime quando a IA NAO confirmou a placa (ilegivel ou confianca
